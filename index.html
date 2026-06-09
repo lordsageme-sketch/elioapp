@@ -228,7 +228,7 @@ var E = {
     think: async function(msg) {
         var msgs = [{role:'system',content:this.getPrompt()}];
         var ctx = this.memory.get(10);
-        for(var i=0;i<ctx.length;i++) msgs.push({role:ctx[i].r,content:ctx[i].c});
+        for(var i=0;i<ctx.length;i++) msgs.push({role:ctx[i].r==='elio'?'assistant':'user',content:ctx[i].c});
         msgs.push({role:'user',content:msg});
         try {
             var r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
