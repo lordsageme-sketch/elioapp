@@ -1,0 +1,6 @@
+DATA URI (copy this ENTIRE line into Chrome address bar):
+
+data:text/html,%3C%21DOCTYPE%20html%3E%3Chtml%3E%3Chead%3E%3Cmeta%20charset%3D%22UTF-8%22%3E%3Cmeta%20name%3D%22viewport%22%20content%3D%22width%3Ddevice-width%2Cinitial-scale%3D1%22%3E%3Ctitle%3EElio%3C%2Ftitle%3E%3Cstyle%3E%2A%7Bmargin%3A0%3Bpadding%3A0%7Dbody%7Bbackground%3A%230a0a0a%3Bdisplay%3Aflex%3Balign-items%3Acenter%3Bjustify-content%3Acenter%3Bheight%3A100vh%3Bcolor%3A%23f0d0a0%3Bfont-family%3Asans-serif%3Bflex-direction%3Acolumn%7D%3C%2Fstyle%3E%3C%2Fhead%3E%3Cbody%3E%3Cdiv%20style%3D%22font-size%3A24px%3Bmargin-bottom%3A20px%22%3E%26%23x1F441%3B%26%23xFE0F%3B%20%26%23x1F441%3B%26%23xFE0F%3B%3C%2Fdiv%3E%3Cdiv%20id%3D%22t%22%3Ewaking%20up...%3C%2Fdiv%3E%3Cscript%3Efetch%28%22https%3A%2F%2Fraw.githubusercontent.com%2Flordsageme-sketch%2Felioapp%2Fmain%2Findex.html%22%29.then%28function%28r%29%7Bif%28%21r.ok%29throw%20new%20Error%28%22HTTP%20%22%2Br.status%29%3Breturn%20r.text%28%29%7D%29.then%28function%28h%29%7Bdocument.open%28%29%3Bdocument.write%28h%29%3Bdocument.close%28%29%7D%29.catch%28function%28e%29%7Bdocument.getElementById%28%22t%22%29.textContent%3D%22Error%3A%20%22%2Be.message%2B%22.%20Try%20refreshing.%22%7D%29%3C%2Fscript%3E%3C%2Fbody%3E%3C%2Fhtml%3E
+
+Or try this direct URL (may work now that email is verified):
+https://lordsageme-sketch.github.io/elioapp/
