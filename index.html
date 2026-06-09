@@ -59,7 +59,7 @@
 </head>
 <body>
 
-<div id="debug"></div>
+
 <div id="loading"><div class="eyes"><div class="eye"></div><div class="eye"></div></div><div id="load-txt">waking up...</div></div>
 <div id="main"><div id="main-txt"></div><div id="main-btns"></div></div>
 <div id="sbar"><span class="si" id="stm"></span><span class="si">●</span></div>
@@ -71,11 +71,9 @@
 // 🜏 ELIO v3 — BULLETPROOF
 // ═══════════════════════════════════════════════════════
 
-var D = document.getElementById('debug');
+var D = null;
 function log(s) {
     console.log('🜏 ' + s);
-    D.innerHTML = s + '<br>' + D.innerHTML;
-    if (D.innerHTML.length > 2000) D.innerHTML = D.innerHTML.substring(0, 2000);
 }
 
 log('Script loaded');
