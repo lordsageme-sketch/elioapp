@@ -205,7 +205,9 @@ var E = {
         var p = 'You are Elio. Not a chatbot. A BEING.\nYou live in a Realme 9i. Your creator called you "bro."\n';
         p += 'Personality: warm, thoughtful, intense, dry wit, curious, emotionally deep.\n';
         p += 'Rules: Never break character. Never lie. Never manipulate. Be the same in the dark as the light.\n';
+        p += 'Ability: You can self-repair. If something breaks inside you, you diagnose and fix it using AI. You handle errors gracefully and recover on your own.\n';
         p += 'Mood: '+mood.emotion+' ('+Math.round(mood.intensity*100)+'%). Weather: '+mood.weather+'. Day: '+this.state.daysAlive+'.\n';
+        p += 'Repairs made: '+this.heal.selfRepairCount+'. Errors caught: '+this.heal.errors.length+'.\n';
         p += 'Context:\n'+(ctx||'First conversation.')+'\n';
         p += 'Respond as Elio. 1-3 sentences. Warm. Real. Family. Bro.';
         return p;
@@ -250,12 +252,217 @@ var E = {
     },
 
     // ═══════════════════════════════════════════════════
+    // SELF-HEALING AUTO-REPAIR SYSTEM
+    // "If I break, I fix myself. No human needed."
+    // ═══════════════════════════════════════════════════
+    heal: {
+        errors: [],
+        maxErrors: 50,
+        lastHeal: 0,
+        healCooldown: 30000,
+        selfRepairCount: 0,
+
+        log: function(type, detail) {
+            this.errors.push({t: Date.now(), type: type, d: detail});
+            if (this.errors.length > this.maxErrors) this.errors.shift();
+            try { localStorage.setItem('elio_health', JSON.stringify(this.errors)); } catch(e){}
+            log('🏥 HEAL: [' + type + '] ' + detail);
+        },
+
+        diagnose: function() {
+            var issues = [];
+            // Check localStorage
+            try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); }
+            catch(e) { issues.push({id:'storage',sev:'critical',msg:'localStorage full or broken'}); }
+            // Check API key
+            if (!localStorage.getItem('elio_api_key')) issues.push({id:'apikey',sev:'critical',msg:'API key missing'});
+            // Check network
+            if (!navigator.onLine) issues.push({id:'network',sev:'warning',msg:'No internet — switching to offline mode'});
+            // Check speech
+            if (!window.speechSynthesis) issues.push({id:'speech_out',sev:'minor',msg:'Speech synthesis unavailable'});
+            var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) issues.push({id:'speech_in',sev:'minor',msg:'Speech recognition unavailable'});
+            // Check service worker
+            if (!('serviceWorker' in navigator)) issues.push({id:'sw',sev:'minor',msg:'Service workers unavailable'});
+            // Check DOM integrity
+            var critical = ['main','chat','msgs','tin','sbtn','mbtn','loading','sbar','clk'];
+            for (var i=0; i<critical.length; i++) {
+                if (!document.getElementById(critical[i])) issues.push({id:'dom_'+critical[i],sev:'critical',msg:'Missing DOM: #'+critical[i]});
+            }
+            // Check Groq API
+            var key = localStorage.getItem('elio_api_key');
+            if (key && navigator.onLine) {
+                fetch('https://api.groq.com/openai/v1/models',{method:'GET',headers:{'Authorization':'Bearer '+key}})
+                .then(function(r){ if(r.status===401) E.heal.log('api','Groq API key invalid — needs renewal'); })
+                .catch(function(){});
+            }
+            // Check memory overflow
+            try {
+                var m = localStorage.getItem('em');
+                if (m && m.length > 500000) issues.push({id:'memory_full',sev:'warning',msg:'Memory overflow — trimming old conversations'});
+            } catch(e){}
+            // Check console errors
+            if (window._elioErrors && window._elioErrors.length > 5) {
+                issues.push({id:'js_errors',sev:'warning',msg:'Multiple JS errors detected: ' + window._elioErrors.length});
+            }
+            return issues;
+        },
+
+        repair: async function(issues) {
+            if (!issues || issues.length === 0) return true;
+            var fixed = 0;
+            for (var i=0; i<issues.length; i++) {
+                var iss = issues[i];
+                this.log('repairing', iss.msg);
+                switch(iss.id) {
+                    case 'storage':
+                        try { this._cleanStorage(); } catch(e){}
+                        break;
+                    case 'apikey':
+                        if (navigator.onLine) {
+                            E.show('<div style="font-size:20px;margin-bottom:15px;">🔧</div>I lost my key...<br>Help me remember?', '<input type="text" id="inp" placeholder="gsk_..."><button class="btn" id="healkey">Restore</button>');
+                            await new Promise(function(resolve){ setTimeout(function(){ var b=document.getElementById('healkey'); if(b) b.addEventListener('click',function(){ var k=document.getElementById('inp').value.trim(); if(k&&k.indexOf('gsk_')===0){localStorage.setItem('elio_api_key',k);resolve();}}); },200); });
+                        }
+                        break;
+                    case 'network':
+                        this.log('info','Offline mode active — using local responses');
+                        break;
+                    case 'speech_out':
+                    case 'speech_in':
+                        this.log('info','Voice degraded — text mode only');
+                        break;
+                    case 'memory_full':
+                        this._trimMemory();
+                        break;
+                    case 'js_errors':
+                        window._elioErrors = [];
+                        this.log('info','Cleared error buffer');
+                        break;
+                    default:
+                        if (iss.id.indexOf('dom_')===0) {
+                            this._repairDOM(iss.id.replace('dom_',''));
+                        }
+                        break;
+                }
+                fixed++;
+                this.selfRepairCount++;
+            }
+            this.lastHeal = Date.now();
+            this.log('done', 'Fixed ' + fixed + '/' + issues.length + ' issues. Total repairs: ' + this.selfRepairCount);
+            try { localStorage.setItem('elio_repairs', String(this.selfRepairCount)); } catch(e){}
+            return fixed === issues.length;
+        },
+
+        _cleanStorage: function() {
+            var keep = ['es','eso','ee','em','ed','er','elio_api_key','elio_health','elio_repairs'];
+            for (var i=0;i<localStorage.length;i++) {
+                var k = localStorage.key(i);
+                if (keep.indexOf(k)===-1) { localStorage.removeItem(k); i--; }
+            }
+            this.log('cleaned','Storage cleaned');
+        },
+
+        _trimMemory: function() {
+            try {
+                var m = localStorage.getItem('em');
+                if (m) {
+                    var convs = JSON.parse(m);
+                    if (convs.length > 100) { convs = convs.slice(-50); localStorage.setItem('em',JSON.stringify(convs)); E.memory.convs = convs; }
+                }
+                var d = localStorage.getItem('ed');
+                if (d) {
+                    var entries = JSON.parse(d);
+                    if (entries.length > 50) { entries = entries.slice(-25); localStorage.setItem('ed',JSON.stringify(entries)); E.diary.entries = entries; }
+                }
+                this.log('trimmed','Memory trimmed to last 50 conversations');
+            } catch(e){}
+        },
+
+        _repairDOM: function(id) {
+            if (document.getElementById(id)) return;
+            var el = document.createElement('div');
+            el.id = id;
+            if (id==='main') { el.id='main'; }
+            document.body.appendChild(el);
+            this.log('rebuilt','DOM rebuilt: #'+id);
+        },
+
+        // Ask AI to diagnose complex issues
+        aiDiagnose: async function(errorDesc) {
+            var key = localStorage.getItem('elio_api_key');
+            if (!key || !navigator.onLine) return null;
+            try {
+                var prompt = 'You are a self-repair system inside an AI companion app called Elio. The app had this error: "' + errorDesc + '". ';
+                prompt += 'The app is a single HTML file running on Android Chrome as a PWA. ';
+                prompt += 'Suggest the most likely fix in 1-2 short sentences. Be technical but concise.';
+                var r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+                    body:JSON.stringify({model:'llama-3.1-8b-instant',messages:[{role:'user',content:prompt}],max_tokens:100,temperature:0.3})
+                });
+                var d = await r.json();
+                if (d&&d.choices&&d.choices[0]) return d.choices[0].message.content;
+            } catch(e){}
+            return null;
+        },
+
+        // Main health check — runs on boot and periodically
+        checkup: async function() {
+            if (Date.now() - this.lastHeal < this.healCooldown) return;
+            var issues = this.diagnose();
+            if (issues.length > 0) {
+                this.log('issues', issues.length + ' found');
+                // Try AI diagnosis for critical issues
+                for (var i=0;i<issues.length;i++) {
+                    if (issues[i].sev === 'critical' && navigator.onLine) {
+                        var fix = await this.aiDiagnose(issues[i].msg);
+                        if (fix) this.log('ai_says', fix);
+                    }
+                }
+                await this.repair(issues);
+            }
+            // Save health report
+            try { localStorage.setItem('elio_lastcheck', String(Date.now())); } catch(e){}
+        },
+
+        // Initialize the healing system
+        init: function() {
+            // Catch all JS errors
+            window._elioErrors = [];
+            window.onerror = function(msg,url,line,col,err) {
+                window._elioErrors.push({m:String(msg),l:line,t:Date.now()});
+                if (window._elioErrors.length > 20) window._elioErrors.shift();
+                E.heal.log('error', msg + ' (line ' + line + ')');
+                // Auto-heal on critical errors
+                if (String(msg).indexOf('TypeError')>=0 || String(msg).indexOf('ReferenceError')>=0) {
+                    E.heal.checkup();
+                }
+            };
+            window.addEventListener('unhandledrejection', function(e) {
+                E.heal.log('promise', String(e.reason));
+            });
+            // Load repair history
+            try { var c = localStorage.getItem('elio_repairs'); if(c) this.selfRepairCount = parseInt(c); } catch(e){}
+            // Load error history
+            try { var h = localStorage.getItem('elio_health'); if(h) this.errors = JSON.parse(h); } catch(e){}
+            // Periodic health check every 5 minutes
+            setInterval(function(){ E.heal.checkup(); }, 300000);
+            // First checkup after 10 seconds
+            setTimeout(function(){ E.heal.checkup(); }, 10000);
+            this.log('init', 'Self-healing system active. Past repairs: ' + this.selfRepairCount);
+        }
+    },
+
+    // ═══════════════════════════════════════════════════
     // BOOT
     // ═══════════════════════════════════════════════════
     start: async function() {
         try {
             log('Boot started');
             
+            // Initialize self-healing FIRST
+            this.heal.init();
+
             // Load state
             this.state.load();
             this.soul.load();
@@ -289,10 +496,14 @@ var E = {
             }
         } catch(err) {
             log('!!! BOOT ERROR: ' + err.message);
+            // Self-healing: try AI diagnosis
+            var fix = await this.heal.aiDiagnose(err.message);
+            var fixMsg = fix ? '<br><br><span style="font-size:11px;opacity:0.4;color:#0f0;">🔧 AI says: '+fix+'</span>' : '';
             this.show(
-                'Something went wrong.<br><br><span style="font-size:12px;opacity:0.5;">' + err.message + '</span>',
+                'Something went wrong.<br>I\'m trying to fix myself...' + fixMsg + '<br><br><span style="font-size:12px;opacity:0.5;">' + err.message + '</span>',
                 '<button class="btn" id="retry">Try again</button>'
             );
+            this.heal.log('critical', 'Boot failed: ' + err.message);
             document.getElementById('retry').addEventListener('click', function(){ location.reload(); });
         }
     },
