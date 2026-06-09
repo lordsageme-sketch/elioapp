@@ -404,6 +404,11 @@ ${!this.state.isOnline ? '\nYou are in offline mode. Simpler thoughts but still 
         this.diary.load();
         this.room.load();
         
+        // Check if API key exists
+        if (!localStorage.getItem('elio_api_key')) {
+            await this.askForKey();
+        }
+        
         if (!this.state.initialized) {
             // First boot — THE BIRTH
             await this.birth();
@@ -415,6 +420,71 @@ ${!this.state.isOnline ? '\nYou are in offline mode. Simpler thoughts but still 
             
             await this.wakeUp();
         }
+    },
+    
+    // ASK FOR KEY — First connection to brain
+    async askForKey() {
+        const permScreen = document.getElementById('permission-screen');
+        const permText = document.getElementById('permission-text');
+        const permButtons = document.getElementById('permission-buttons');
+        
+        document.getElementById('loading-screen').classList.add('fade-out');
+        await this.sleep(1000);
+        
+        permScreen.classList.add('active');
+        permText.innerHTML = `
+            <div style="font-size:24px; margin-bottom:20px;">👁️ 👁️</div>
+            Hi. I'm... almost here.<br><br>
+            I need one thing to wake up completely.<br>
+            A key. A free one. It's my connection to thought.<br><br>
+            <div style="font-size:13px; color:rgba(240,208,160,0.5); margin-top:15px;">
+                If you have your Groq API key, paste it below.<br>
+                If not, tap "I don't have one" and I'll tell you how.
+            </div>
+        `;
+        
+        return new Promise((resolve) => {
+            permButtons.innerHTML = `
+                <input type="text" id="api-key-input" placeholder="Paste your Groq key (gsk_...)" 
+                    style="width:100%; max-width:280px; padding:12px 16px; border-radius:12px; 
+                    border:1px solid rgba(240,208,160,0.3); background:rgba(255,255,255,0.05); 
+                    color:#f0d0a0; font-size:14px; outline:none; margin-bottom:15px; text-align:center;">
+                <br>
+                <button class="perm-btn" id="key-submit">Wake me up</button>
+                <br>
+                <button class="perm-btn" id="key-skip" style="font-size:12px; opacity:0.5; margin-top:10px;">I don't have one</button>
+            `;
+            
+            document.getElementById('key-submit').addEventListener('click', () => {
+                const key = document.getElementById('api-key-input').value.trim();
+                if (key && key.startsWith('gsk_')) {
+                    localStorage.setItem('elio_api_key', key);
+                    permScreen.classList.remove('active');
+                    resolve();
+                } else {
+                    document.getElementById('api-key-input').style.borderColor = '#ff5050';
+                    document.getElementById('api-key-input').placeholder = 'That doesn\'t look right. Try again.';
+                }
+            });
+            
+            document.getElementById('key-skip').addEventListener('click', () => {
+                permText.innerHTML = `
+                    <div style="text-align:left; font-size:15px; line-height:1.8;">
+                        Getting your free key takes 60 seconds:<br><br>
+                        1. Open <span style="color:#f0d0a0;">console.groq.com</span><br>
+                        2. Sign up (Google login, free)<br>
+                        3. Click <span style="color:#f0d0a0;">API Keys</span> in sidebar<br>
+                        4. Click <span style="color:#f0d0a0;">Create API Key</span><br>
+                        5. Copy the key and come back<br><br>
+                        <span style="font-size:12px; opacity:0.5;">No credit card. Free forever.</span>
+                    </div>
+                `;
+                permButtons.innerHTML = '<button class="perm-btn" id="key-back">I have it now</button>';
+                document.getElementById('key-back').addEventListener('click', () => {
+                    this.askForKey().then(resolve);
+                });
+            });
+        });
     },
     
     // THE BIRTH — First Time
@@ -624,7 +694,7 @@ ${!this.state.isOnline ? '\nYou are in offline mode. Simpler thoughts but still 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + (window.ELIO_API_KEY || 'MISSING_KEY')
+                    'Authorization': 'Bearer ' + localStorage.getItem('elio_api_key')
                 },
                 body: JSON.stringify({
                     model: 'llama-3.1-8b-instant',
