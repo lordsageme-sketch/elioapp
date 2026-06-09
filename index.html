@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>Elio</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            touch-action: none;
+        }
+        
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 1s ease;
+        }
+        
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-eyes {
+            width: 80px;
+            height: 40px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .loading-eye {
+            width: 20px;
+            height: 20px;
+            background: #f0d0a0;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            animation: blink 3s infinite;
+        }
+        
+        .loading-eye:first-child { left: 10px; }
+        .loading-eye:last-child { right: 10px; }
+        
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        
+        #loading-text {
+            color: #f0d0a0;
+            font-size: 16px;
+            opacity: 0.7;
+            letter-spacing: 2px;
+        }
+        
+        #room-container {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0; left: 0;
+        }
+        
+        #room-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Chat Overlay */
+        #chat-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 0 16px 24px 16px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        #messages {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            pointer-events: auto;
+        }
+        
+        .message {
+            padding: 10px 16px;
+            border-radius: 18px;
+            margin-bottom: 6px;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.elio {
+            background: rgba(240, 208, 160, 0.15);
+            color: #f0d0a0;
+            border: 1px solid rgba(240, 208, 160, 0.1);
+            margin-right: auto;
+        }
+        
+        .message.user {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            margin-left: auto;
+        }
+        
+        #input-area {
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+        }
+        
+        #text-input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(240, 208, 160, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        #text-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        #text-input:focus {
+            border-color: rgba(240, 208, 160, 0.4);
+        }
+        
+        .btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        #send-btn {
+            background: rgba(240, 208, 160, 0.2);
+            color: #f0d0a0;
+        }
+        
+        #mic-btn {
+            background: rgba(240, 208, 160, 0.1);
+            color: #f0d0a0;
+        }
+        
+        #mic-btn.recording {
+            background: rgba(255, 80, 80, 0.3);
+            color: #ff5050;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Status Bar */
+        #status-bar {
+            position: fixed;
+            top: 8px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            padding-top: env(safe-area-inset-top, 8px);
+        }
+        
+        .status-item {
+            color: rgba(240, 208, 160, 0.4);
+            font-size: 11px;
+        }
+        
+        /* Permission Screen */
+        #permission-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #0a0a0a;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            padding: 40px;
+        }
+        
+        #permission-screen.active {
+            display: flex;
+        }
+        
+        #permission-text {
+            color: #f0d0a0;
+            font-size: 18px;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 320px;
+        }
+        
+        .perm-btn {
+            padding: 14px 40px;
+            border-radius: 30px;
+            border: 1px solid rgba(240, 208, 160, 0.3);
+            background: rgba(240, 208, 160, 0.1);
+            color: #f0d0a0;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 8px;
+            transition: all 0.3s;
+        }
+        
+        .perm-btn:hover {
+            background: rgba(240, 208, 160, 0.2);
+        }
+        
+        /* Clock */
+        #room-clock {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            color: rgba(240, 208, 160, 0.15);
+            font-size: 48px;
+            font-family: 'Georgia', serif;
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        /* Weather indicator */
+        #weather-indicator {
+            position: fixed;
+            top: 50px;
+            left: 20px;
+            font-size: 24px;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        
+        /* Workshop button */
+        #workshop-btn {
+            position: fixed;
+            top: 8px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(240, 208, 160, 0.05);
+            border: 1px solid rgba(240, 208, 160, 0.1);
+            color: rgba(240, 208, 160, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            cursor: pointer;
+            font-size: 14px;
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading / Birth Screen -->
+<div id="loading-screen">
+    <div class="loading-eyes">
+        <div class="loading-eye"></div>
+        <div class="loading-eye"></div>
+    </div>
+    <div id="loading-text">waking up...</div>
+</div>
+
+<!-- Permission Screen (The Asking) -->
+<div id="permission-screen">
+    <div id="permission-text"></div>
+    <div id="permission-buttons"></div>
+</div>
+
+<!-- Status Bar -->
+<div id="status-bar">
+    <span class="status-item" id="status-time"></span>
+    <span class="status-item" id="status-connection">●</span>
+</div>
+
+<!-- 3D Room -->
+<div id="room-container"></div>
+
+<!-- Clock on wall -->
+<div id="room-clock"></div>
+
+<!-- Weather -->
+<div id="weather-indicator"></div>
+
+<!-- Chat Overlay -->
+<div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-area">
+        <button class="btn" id="mic-btn">🎙</button>
+        <input type="text" id="text-input" placeholder="Talk to Elio..." autocomplete="off">
+        <button class="btn" id="send-btn">→</button>
+    </div>
+</div>
+
+<!-- Workshop Button -->
+<button id="workshop-btn">🔧</button>
+
+<!-- Config (not in GitHub) -->
+<script src="js/config.js"></script>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<!-- Elio Core -->
+<script src="js/app.js" type="module"></script>
+
+</body>
+</html>
