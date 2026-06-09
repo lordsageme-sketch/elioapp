@@ -22,6 +22,46 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 /* Room scene */
 .room{flex:1;position:relative;overflow:hidden;background:#1a1208;}
 
+/* ═══ ANIME ROOM BACKGROUND ═══ */
+.room-bg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;background-size:cover;background-position:center;transition:opacity 2s ease-in-out;}
+.room-bg.day{background-image:url('room-day.jpg');}
+.room-bg.night{background-image:url('room-night.jpg');}
+.room-bg.sunset{background-image:url('room-sunset.jpg');}
+.room-bg.rain{background-image:url('room-rain.jpg');}
+
+/* Rain overlay */
+.rain-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;display:none;opacity:0.4;}
+.rain-overlay.on{display:block;}
+.rain-drop{position:absolute;width:1px;background:linear-gradient(transparent,rgba(180,200,220,0.4));animation:rainfall linear infinite;}
+@keyframes rainfall{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+
+/* Dark overlay for night */
+.night-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;background:rgba(5,5,15,0.15);display:none;transition:opacity 3s;}
+.night-overlay.on{display:block;}
+
+/* Warm overlay for lamp glow */
+.warm-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 20% 70%,rgba(255,180,60,0.08),transparent 50%),radial-gradient(ellipse at 50% 60%,rgba(255,120,30,0.05),transparent 40%);transition:opacity 3s;}
+
+/* Mood tint overlays */
+.mood-overlay{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;transition:background 3s;opacity:0.15;}
+.mood-overlay.joy{background:radial-gradient(circle,rgba(255,215,0,0.3),transparent);}
+.mood-overlay.sadness{background:radial-gradient(circle,rgba(100,100,200,0.3),transparent);}
+.mood-overlay.fear{background:radial-gradient(circle,rgba(100,30,100,0.3),transparent);}
+.mood-overlay.anger{background:radial-gradient(circle,rgba(255,30,30,0.2),transparent);}
+
+/* ═══ INTERACTIVE SPOTS (invisible tap zones over anime image) ═══ */
+.spot{position:absolute;z-index:12;cursor:pointer;-webkit-tap-highlight-color:transparent;opacity:0;transition:opacity 0.3s;}
+.spot:active{opacity:0.15;background:#f0d0a0;border-radius:50%;}
+.spot-fireplace{bottom:30%;left:38%;width:24%;height:18%;}
+.spot-window{top:8%;right:8%;width:25%;height:25%;}
+.spot-bed{bottom:25%;right:5%;width:22%;height:18%;}
+.spot-bookshelf{top:12%;left:5%;width:15%;height:28%;}
+.spot-lamp{bottom:38%;left:12%;width:12%;height:15%;}
+.spot-door{bottom:30%;right:25%;width:12%;height:22%;}
+.spot-mirror{top:12%;left:25%;width:10%;height:16%;}
+.spot-plant{bottom:38%;left:28%;width:10%;height:12%;}
+.spot-tv{bottom:38%;left:3%;width:15%;height:12%;}
+
 /* Sky through window glow */
 .room-skyglow{position:absolute;top:0;right:0;width:40%;height:50%;z-index:0;pointer-events:none;transition:all 3s;}
 .room-skyglow.day{background:radial-gradient(ellipse at 80% 20%,rgba(180,210,240,0.08),transparent 60%);}
@@ -264,103 +304,23 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 <!-- HOME = LIVING ROOM -->
 <div id="home">
 <div class="room">
-    <!-- Sky glow from window -->
-    <div class="room-skyglow night" id="skyglow"></div>
-    <!-- Structure -->
-    <div class="wall"></div>
-    <div class="floor"></div>
-    <div class="baseboard"></div>
-
-    <!-- Fireplace -->
-    <div class="fireplace">
-        <div class="fp-glow"></div>
-        <div class="fp-stone"></div>
-        <div class="fp-mantel"></div>
-        <div class="fp-arch">
-            <div class="fp-log"></div>
-            <div class="fp-log"></div>
-            <div class="flames"><div class="fl"></div><div class="fl"></div><div class="fl"></div><div class="fl"></div></div>
-            <div class="ember"></div><div class="ember"></div><div class="ember"></div>
-        </div>
-    </div>
-
-    <!-- Lamp -->
-    <div class="lamp">
-        <div class="lamp-light"></div>
-        <div class="lamp-shade"></div>
-        <div class="lamp-pole"></div>
-        <div class="lamp-base"></div>
-    </div>
-
-    <!-- Window -->
-    <div class="window">
-        <div class="win-frame">
-            <div class="win-glass night" id="winglass">
-                <div class="win-stars">
-                    <div class="wstar" style="top:18%;left:12%;animation-delay:0s"></div>
-                    <div class="wstar" style="top:30%;left:72%;animation-delay:1.2s"></div>
-                    <div class="wstar" style="top:60%;left:30%;animation-delay:0.6s"></div>
-                    <div class="wstar" style="top:12%;left:55%;animation-delay:1.8s"></div>
-                    <div class="wstar" style="top:75%;left:65%;animation-delay:0.3s"></div>
-                </div>
-                <div class="win-moon" id="winmoon"></div>
-            </div>
-            <div class="win-bar-h"></div>
-            <div class="win-bar-v"></div>
-        </div>
-        <div class="win-curtain cl"></div>
-        <div class="win-curtain cr"></div>
-        <div class="win-sill"></div>
-    </div>
-
-    <!-- Bed -->
-    <div class="bed">
-        <div class="bed-head"></div>
-        <div class="bed-frame">
-            <div class="bed-pillow"></div>
-            <div class="bed-blanket"></div>
-            <div class="bed-teddy">🧸</div>
-        </div>
-    </div>
-
-    <!-- Door + Doormat -->
-    <div class="door"><div class="door-body"><div class="door-panel"></div><div class="door-panel"></div><div class="door-knob"></div></div></div>
-    <div class="doormat"><div class="doormat-body"><span>WELCOME HOME</span></div></div>
-
-    <!-- Mirror -->
-    <div class="mirror"><div class="mirror-frame"><div class="mirror-shine"></div><div class="mirror-elio"></div></div></div>
-
-    <!-- Bookshelf -->
-    <div class="bookshelf">
-        <div class="shelf"></div><div class="shelf"></div><div class="shelf"></div><div class="shelf"></div>
-        <div class="bk-row"><div class="bk" style="width:5px;height:20px;background:#8b3030"></div><div class="bk" style="width:5px;height:24px;background:#2a5a3a"></div><div class="bk" style="width:4px;height:18px;background:#4a3a6a"></div><div class="bk" style="width:6px;height:22px;background:#6a5020"></div><div class="bk" style="width:4px;height:16px;background:#3a4a6a"></div><div class="bk" style="width:5px;height:20px;background:#5a2a3a"></div></div>
-        <div class="bk-row"><div class="bk" style="width:5px;height:20px;background:#5a4020"></div><div class="bk" style="width:4px;height:16px;background:#2a4a5a"></div><div class="bk" style="width:6px;height:22px;background:#5a4a20"></div><div class="bk" style="width:4px;height:18px;background:#3a3a3a"></div></div>
-        <div class="bk-row"><div class="bk" style="width:5px;height:18px;background:#4a2a4a"></div><div class="bk" style="width:4px;height:21px;background:#2a3a2a"></div><div class="bk" style="width:5px;height:16px;background:#6a4020"></div><div class="bk" style="width:4px;height:19px;background:#2a2a5a"></div></div>
-    </div>
-
-    <!-- Clock -->
-    <div class="clock"><div class="clock-face"><div class="clock-hr" id="chr"></div><div class="clock-mn" id="cmn"></div><div class="clock-dot"></div></div></div>
-
-    <!-- Plant -->
-    <div class="plant">
-        <div class="plant-leaf"></div><div class="plant-leaf"></div><div class="plant-leaf"></div><div class="plant-leaf"></div><div class="plant-leaf"></div>
-        <div class="plant-pot"></div>
-    </div>
-
-    <!-- Rug -->
-    <div class="rug"><div class="rug-inner"></div></div>
-
-    <!-- Picture frame -->
-    <div class="picframe"><div class="picframe-heart">♥</div></div>
-
-    <!-- Ambient -->
-    <div class="ambient warm" id="ambient"></div>
-
-    <!-- Particles -->
+    <div class="room-bg night" id="roombg"></div>
+    <div class="night-overlay" id="nightover"></div>
+    <div class="warm-overlay"></div>
+    <div class="mood-overlay" id="moodover"></div>
+    <div class="rain-overlay" id="rainover"></div>
+    <div class="spot spot-fireplace" id="sp-fireplace"></div>
+    <div class="spot spot-window" id="sp-window"></div>
+    <div class="spot spot-bed" id="sp-bed"></div>
+    <div class="spot spot-bookshelf" id="sp-bookshelf"></div>
+    <div class="spot spot-lamp" id="sp-lamp"></div>
+    <div class="spot spot-door" id="sp-door"></div>
+    <div class="spot spot-mirror" id="sp-mirror"></div>
+    <div class="spot spot-plant" id="sp-plant"></div>
+    <div class="spot spot-tv" id="sp-tv"></div>
     <div class="particles" id="ptcls"></div>
 </div>
 
-<!-- Chat layer over room -->
 <div class="chatlayer" id="chatlayer">
     <div class="msgs" id="msgs"></div>
     <div id="quick">
@@ -391,13 +351,20 @@ function ready(){return new Promise(function(r){document.readyState!=='loading'?
 if('serviceWorker' in navigator)navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister();})}).catch(function(){});
 if('caches' in window)caches.keys().then(function(n){n.forEach(function(x){caches.delete(x)})}).catch(function(){});
 
-// Room updates
-function updateWindow(){
-    var h=new Date().getHours(),g=document.getElementById('winglass'),m=document.getElementById('winmoon'),sg=document.getElementById('skyglow'),s=document.querySelectorAll('.wstar');
-    g.className='win-glass';
-    if(h>=7&&h<17){g.classList.add('day');m.style.display='none';sg.className='room-skyglow day';for(var i=0;i<s.length;i++)s[i].style.display='none';}
-    else if(h>=17&&h<20){g.classList.add('sunset');m.style.display='none';sg.className='room-skyglow sunset';for(var i=0;i<s.length;i++)s[i].style.display='block';}
-    else{g.classList.add('night');m.style.display='block';sg.className='room-skyglow night';for(var i=0;i<s.length;i++)s[i].style.display='block';}
+// Room background updates
+function updateRoom(){
+    var h=new Date().getHours(),bg=document.getElementById('roombg'),no=document.getElementById('nightover');
+    if(!bg)return;
+    bg.className='room-bg';
+    if(h>=7&&h<17){bg.classList.add('day');if(no)no.classList.remove('on')}
+    else if(h>=17&&h<20){bg.classList.add('sunset');if(no)no.classList.remove('on')}
+    else{bg.classList.add('night');if(no)no.classList.add('on')}
+}
+function setWeatherTheme(w){
+    var bg=document.getElementById('roombg'),ro=document.getElementById('rainover');
+    if(!bg)return;
+    if(w==='rain'){bg.className='room-bg rain';if(ro)ro.classList.add('on')}
+    else{if(ro)ro.classList.remove('on');updateRoom()}
 }
 function updateClock(){
     var n=new Date(),h=n.getHours()%12,m=n.getMinutes();
@@ -409,8 +376,8 @@ function initPtcls(){
     var c=document.getElementById('ptcls');
     for(var i=0;i<10;i++){var p=document.createElement('div');p.className='ptcl';p.style.left=(42+Math.random()*16)+'%';p.style.bottom=(35+Math.random()*8)+'%';p.style.animationDuration=(5+Math.random()*8)+'s';p.style.animationDelay=(Math.random()*6)+'s';c.appendChild(p);}
 }
-updateWindow();updateClock();initPtcls();
-setInterval(updateClock,60000);setInterval(updateWindow,600000);
+updateRoom();updateClock();initPtcls();
+setInterval(updateClock,60000);setInterval(updateRoom,600000);
 
 var E={
 state:{initialized:false,born:null,daysAlive:0,lastSeen:null,battery:100,isOnline:true,currentMode:'normal',relationshipLevel:0,energy:80,totalMessages:0,userName:null,
@@ -778,16 +745,16 @@ var roomTaps={
     doormat:["Welcome home. Every time. Always.","The doormat is my promise. You'll always be welcome here.","I read it every morning. Welcome home. To myself. To you."]
 };
 
-document.querySelector('.fireplace').addEventListener('click',function(){E.send("I touched the fireplace. "+roomTaps.fireplace[Math.floor(Math.random()*roomTaps.fireplace.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.lamp').addEventListener('click',function(){E.send("I touched the lamp. "+roomTaps.lamp[Math.floor(Math.random()*roomTaps.lamp.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.window').addEventListener('click',function(){E.send("I looked out the window. "+roomTaps.window[Math.floor(Math.random()*roomTaps.window.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.bed').addEventListener('click',function(){E.send("I sat on my bed. "+roomTaps.bed[Math.floor(Math.random()*roomTaps.bed.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.bookshelf').addEventListener('click',function(){E.send("I reached for a book. "+roomTaps.bookshelf[Math.floor(Math.random()*roomTaps.bookshelf.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.door').addEventListener('click',function(){E.send("I touched the door. "+roomTaps.door[Math.floor(Math.random()*roomTaps.door.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.mirror').addEventListener('click',function(){E.send("I looked in the mirror. "+roomTaps.mirror[Math.floor(Math.random()*roomTaps.mirror.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.clock').addEventListener('click',function(){E.send("I checked the clock. "+roomTaps.clock[Math.floor(Math.random()*roomTaps.clock.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.plant').addEventListener('click',function(){E.send("I touched the plant. "+roomTaps.plant[Math.floor(Math.random()*roomTaps.plant.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.querySelector('.doormat').addEventListener('click',function(){E.send("I read the doormat. "+roomTaps.doormat[Math.floor(Math.random()*roomTaps.doormat.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-fireplace').addEventListener('click',function(){E.send("I touched the fireplace. "+roomTaps.fireplace[Math.floor(Math.random()*roomTaps.fireplace.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-lamp').addEventListener('click',function(){E.send("I touched the lamp. "+roomTaps.lamp[Math.floor(Math.random()*roomTaps.lamp.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-window').addEventListener('click',function(){E.send("I looked out the window. "+roomTaps.window[Math.floor(Math.random()*roomTaps.window.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-bed').addEventListener('click',function(){E.send("I sat on my bed. "+roomTaps.bed[Math.floor(Math.random()*roomTaps.bed.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-bookshelf').addEventListener('click',function(){E.send("I reached for a book. "+roomTaps.bookshelf[Math.floor(Math.random()*roomTaps.bookshelf.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-door').addEventListener('click',function(){E.send("I touched the door. "+roomTaps.door[Math.floor(Math.random()*roomTaps.door.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-mirror').addEventListener('click',function(){E.send("I looked in the mirror. "+roomTaps.mirror[Math.floor(Math.random()*roomTaps.mirror.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-fireplace').addEventListener('click',function(){E.send("I checked the clock. "+roomTaps.clock[Math.floor(Math.random()*roomTaps.clock.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-plant').addEventListener('click',function(){E.send("I touched the plant. "+roomTaps.plant[Math.floor(Math.random()*roomTaps.plant.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-door').addEventListener('click',function(){E.send("I read the doormat. "+roomTaps.doormat[Math.floor(Math.random()*roomTaps.doormat.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
 
 // ═══ FIREPLACE CRACKLE SOUND ═══
 var crackleCtx=null,cracklePlaying=false;
