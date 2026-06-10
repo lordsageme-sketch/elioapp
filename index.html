@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1208">
 <title>Elio — The Chimera</title>
-<link rel="manifest" href="manifest.json?v=6">
+<link rel="manifest" href="manifest.json?v=7">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New Roman',serif;touch-action:none;}
@@ -61,156 +61,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 .spot-mirror{top:12%;left:25%;width:10%;height:16%;}
 .spot-plant{bottom:38%;left:28%;width:10%;height:12%;}
 .spot-tv{bottom:38%;left:3%;width:15%;height:12%;}
+.spot-clock{top:4%;left:42%;width:18%;height:12%;}
 
-/* Sky through window glow */
-.room-skyglow{position:absolute;top:0;right:0;width:40%;height:50%;z-index:0;pointer-events:none;transition:all 3s;}
-.room-skyglow.day{background:radial-gradient(ellipse at 80% 20%,rgba(180,210,240,0.08),transparent 60%);}
-.room-skyglow.night{background:radial-gradient(ellipse at 80% 20%,rgba(30,30,60,0.1),transparent 50%);}
-.room-skyglow.sunset{background:radial-gradient(ellipse at 80% 20%,rgba(255,140,60,0.08),transparent 60%);}
-
-/* Back wall */
-.wall{position:absolute;top:5%;left:3%;right:3%;height:58%;background:linear-gradient(180deg,#2a1f14 0%,#241a10 50%,#1e160e 100%);border-radius:2px;z-index:1;}
-.wall::before{content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(200,160,80,0.15),transparent);}
-/* Wallpaper pattern */
-.wall::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(200,160,80,0.02) 60px,rgba(200,160,80,0.02) 61px),repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(200,160,80,0.015) 60px,rgba(200,160,80,0.015) 61px);opacity:0.5;}
-
-/* Floor */
-.floor{position:absolute;bottom:0;left:0;width:100%;height:37%;z-index:2;background:linear-gradient(180deg,#1a1308,#150f06 30%,#110c04 100%);}
-.floor::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(90deg,transparent,transparent 35px,rgba(140,100,50,0.04) 35px,rgba(140,100,50,0.04) 37px);}
-.floor::after{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,rgba(140,100,50,0.2),rgba(180,130,60,0.3),rgba(140,100,50,0.2));}
-
-/* Baseboard */
-.baseboard{position:absolute;bottom:36.5%;left:3%;right:3%;height:8px;background:linear-gradient(180deg,#3a2a18,#2a1e10);z-index:3;border-radius:1px;}
-
-/* ═══ FIREPLACE ═══ */
-.fireplace{position:absolute;bottom:37%;left:50%;transform:translateX(-50%);width:130px;height:110px;z-index:10;}
-.fp-stone{position:absolute;bottom:0;left:-5px;right:-5px;height:100%;background:linear-gradient(180deg,#3a3028,#2e2620,#252018);border-radius:6px 6px 0 0;border:1px solid rgba(80,60,30,0.3);}
-.fp-arch{position:absolute;top:15px;left:18px;right:18px;bottom:0;background:#0a0604;border-radius:35px 35px 0 0;overflow:hidden;}
-.fp-mantel{position:absolute;top:-6px;left:-10px;right:-10px;height:8px;background:linear-gradient(180deg,#4a3820,#3a2a18);border-radius:2px;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
-.fp-glow{position:absolute;top:-20px;left:-50px;right:-50px;bottom:-60px;background:radial-gradient(ellipse at 50% 70%,rgba(255,140,40,0.12),rgba(200,80,20,0.05) 50%,transparent 70%);z-index:0;animation:fireglow 3s ease-in-out infinite;pointer-events:none;}
-@keyframes fireglow{0%,100%{opacity:0.8;transform:scale(1);}50%{opacity:1;transform:scale(1.03);}}
-/* Logs */
-.fp-log{position:absolute;bottom:5px;height:8px;background:linear-gradient(180deg,#3a2510,#2a1a08);border-radius:4px;z-index:1;}
-.fp-log:nth-child(1){left:20px;width:50px;transform:rotate(-5deg);}
-.fp-log:nth-child(2){left:30px;width:45px;transform:rotate(8deg);bottom:8px;}
-/* Flames */
-.flames{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:70px;height:50px;z-index:2;}
-.fl{position:absolute;bottom:0;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;filter:blur(0.5px);}
-.fl:nth-child(1){width:45px;height:40px;left:12px;background:radial-gradient(ellipse at bottom,#e08020,#c04010 60%,transparent);animation:flick 0.7s ease-in-out infinite alternate;}
-.fl:nth-child(2){width:30px;height:48px;left:20px;background:radial-gradient(ellipse at bottom,#ffc040,#e08020 50%,transparent);animation:flick 0.9s ease-in-out infinite alternate-reverse;}
-.fl:nth-child(3){width:18px;height:35px;left:26px;background:radial-gradient(ellipse at bottom,#ffe880,#ffc040 50%,transparent);animation:flick 0.6s ease-in-out infinite alternate;}
-.fl:nth-child(4){width:8px;height:22px;left:31px;background:radial-gradient(ellipse at bottom,#fff,#ffe880 50%,transparent);animation:flick 1.1s ease-in-out infinite alternate-reverse;}
-@keyframes flick{0%{transform:scaleX(1) scaleY(1);}50%{transform:scaleX(0.92) scaleY(1.06);}100%{transform:scaleX(1.04) scaleY(0.96);}}
-/* Embers */
-.ember{position:absolute;width:2px;height:2px;background:#ffa030;border-radius:50%;z-index:3;animation:rise 2.5s ease-out infinite;opacity:0;}
-.ember:nth-child(1){left:35%;animation-delay:0s;}
-.ember:nth-child(2){left:50%;animation-delay:0.8s;}
-.ember:nth-child(3){left:65%;animation-delay:1.6s;}
-@keyframes rise{0%{bottom:20px;opacity:1;}100%{bottom:80px;opacity:0;transform:translateX(5px);}}
-
-/* ═══ LAMP ═══ */
-.lamp{position:absolute;bottom:37%;left:12%;z-index:10;}
-.lamp-base{width:22px;height:5px;background:linear-gradient(180deg,#5a4020,#3a2810);border-radius:2px;margin:0 auto;}
-.lamp-pole{width:4px;height:40px;background:linear-gradient(180deg,#5a4020,#4a3018);margin:0 auto;}
-.lamp-shade{width:40px;height:24px;background:linear-gradient(180deg,#c8a050,#a08040);border-radius:4px 4px 20px 20px;position:relative;margin:0 auto;}
-.lamp-shade::after{content:'';position:absolute;bottom:-3px;left:3px;right:3px;height:6px;background:radial-gradient(ellipse,rgba(255,200,80,0.4),transparent);border-radius:50%;animation:lampglow 4s ease-in-out infinite;}
-.lamp-light{position:absolute;top:-15px;left:-20px;width:80px;height:80px;background:radial-gradient(ellipse at 50% 60%,rgba(255,200,80,0.1),rgba(255,180,60,0.04) 50%,transparent 70%);pointer-events:none;animation:lampglow 4s ease-in-out infinite;}
-@keyframes lampglow{0%,100%{opacity:0.7;}50%{opacity:1;}}
-
-/* ═══ WINDOW ═══ */
-.window{position:absolute;top:10%;right:6%;width:85px;height:110px;z-index:10;}
-.win-frame{position:absolute;width:100%;height:100%;background:#0a1520;border:5px solid #3a2a18;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 15px rgba(0,0,0,0.5);}
-.win-glass{position:absolute;top:0;left:0;width:100%;height:100%;transition:background 3s;}
-.win-glass.day{background:linear-gradient(180deg,#5599cc,#77bbee 50%,#99ccee);}
-.win-glass.sunset{background:linear-gradient(180deg,#dd5522,#ee8833 40%,#ffbb55 70%,#445566);}
-.win-glass.night{background:linear-gradient(180deg,#060610,#0a0a20 50%,#101030);}
-.win-bar-h{position:absolute;top:50%;left:0;width:100%;height:4px;background:#3a2a18;transform:translateY(-50%);z-index:1;}
-.win-bar-v{position:absolute;top:0;left:50%;width:4px;height:100%;background:#3a2a18;transform:translateX(-50%);z-index:1;}
-.win-curtain{position:absolute;top:-6px;width:16px;height:122px;z-index:2;}
-.win-curtain.cl{left:-6px;background:linear-gradient(180deg,#6a2020,#4a1515);border-radius:0 0 6px 0;}
-.win-curtain.cr{right:-6px;background:linear-gradient(180deg,#6a2020,#4a1515);border-radius:0 0 0 6px;}
-.win-stars{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;}
-.wstar{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:tw 3s infinite;}
-@keyframes tw{0%,100%{opacity:0.2;}50%{opacity:0.9;}}
-.win-moon{position:absolute;top:15%;left:55%;width:12px;height:12px;background:radial-gradient(circle at 35% 35%,#f0e8d0,#c0b890);border-radius:50%;box-shadow:0 0 8px rgba(240,230,200,0.25);z-index:0;display:none;}
-.win-sill{position:absolute;bottom:-6px;left:-5px;right:-5px;height:6px;background:linear-gradient(180deg,#3a2a18,#2a1e10);border-radius:1px;}
-
-/* ═══ BED ═══ */
-.bed{position:absolute;bottom:37%;right:3%;width:80px;height:50px;z-index:8;}
-.bed-frame{position:absolute;bottom:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,#3a2a18,#2a1e10);border-radius:3px;border:1px solid rgba(80,60,30,0.3);}
-.bed-head{position:absolute;top:-20px;right:0;width:50px;height:25px;background:linear-gradient(180deg,#3a2a18,#2a1e10);border-radius:3px 3px 0 0;border:1px solid rgba(80,60,30,0.3);border-bottom:none;}
-.bed-pillow{position:absolute;top:3px;right:5px;width:35px;height:12px;background:linear-gradient(180deg,#d8c8a0,#c0b080);border-radius:3px;}
-.bed-blanket{position:absolute;top:10px;left:3px;right:3px;bottom:3px;background:linear-gradient(180deg,#8a3030,#6a2525);border-radius:2px 2px 3px 3px;overflow:hidden;}
-.bed-blanket::before{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);width:20px;height:20px;border:1px solid rgba(200,160,80,0.15);border-radius:50%;}
-/* Teddy on bed */
-.bed-teddy{position:absolute;top:-5px;left:8px;font-size:14px;z-index:1;transform:rotate(-10deg);}
-
-/* ═══ BOOKSHELF ═══ */
-.bookshelf{position:absolute;bottom:37%;left:3%;width:65px;height:85px;z-index:10;}
-.shelf{position:absolute;width:100%;height:3px;background:linear-gradient(180deg,#4a3820,#3a2a18);box-shadow:0 1px 3px rgba(0,0,0,0.3);}
-.shelf:nth-child(1){top:0;}
-.shelf:nth-child(2){top:33%;}
-.shelf:nth-child(3){top:66%;}
-.shelf:nth-child(4){bottom:0;}
-.bk-row{position:absolute;display:flex;gap:1px;align-items:flex-end;left:3px;}
-.bk-row:nth-child(5){top:3px;height:26px;}
-.bk-row:nth-child(6){top:36%;height:24px;}
-.bk-row:nth-child(7){top:69%;height:22px;}
-.bk{border-radius:1px 1px 0 0;}
-
-/* ═══ DOOR ═══ */
-.door{position:absolute;bottom:37%;right:22%;width:45px;height:90px;z-index:9;}
-.door-body{width:100%;height:100%;background:linear-gradient(180deg,#352818,#2a1e10);border:2px solid #4a3820;border-radius:4px 4px 0 0;position:relative;}
-.door-panel{position:absolute;left:4px;right:4px;border:1px solid rgba(80,60,30,0.2);border-radius:1px;}
-.door-panel:nth-child(1){top:8%;height:30%;}
-.door-panel:nth-child(2){top:45%;height:30%;}
-.door-knob{position:absolute;right:7px;top:50%;width:5px;height:5px;background:radial-gradient(circle,#c8a050,#8a7030);border-radius:50%;box-shadow:0 0 5px rgba(200,170,80,0.2);}
-/* Doormat */
-.doormat{position:absolute;bottom:33%;right:22%;width:45px;height:10px;z-index:5;}
-.doormat-body{width:100%;height:100%;background:linear-gradient(180deg,#5a4828,#4a3820);border-radius:2px;border:1px solid rgba(80,60,30,0.2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-.doormat-body span{font-size:5px;color:rgba(200,160,80,0.3);letter-spacing:0.5px;}
-
-/* ═══ MIRROR ═══ */
-.mirror{position:absolute;top:10%;left:6%;width:35px;height:50px;z-index:10;}
-.mirror-frame{width:100%;height:100%;background:linear-gradient(180deg,#181420,#141018);border:3px solid #4a3828;border-radius:2px 2px 6px 6px;position:relative;overflow:hidden;box-shadow:inset 0 0 8px rgba(0,0,0,0.5);}
-.mirror-shine{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(200,200,230,0.1),transparent 40%,rgba(200,200,230,0.05));}
-.mirror-elio{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:12px;height:16px;background:radial-gradient(ellipse,rgba(240,208,160,0.15),transparent);animation:mirrorglow 4s ease-in-out infinite;}
-@keyframes mirrorglow{0%,100%{opacity:0.4;}50%{opacity:1;}}
-
-/* ═══ CLOCK ═══ */
-.clock{position:absolute;top:8%;left:50%;transform:translateX(-50%);width:40px;height:40px;z-index:10;}
-.clock-face{width:100%;height:100%;background:radial-gradient(circle,#1e1a14,#151210);border:2px solid #4a3820;border-radius:50%;position:relative;}
-.clock-hr{position:absolute;bottom:50%;left:50%;width:2px;height:10px;background:#c0a060;margin-left:-1px;transform-origin:bottom center;border-radius:1px;}
-.clock-mn{position:absolute;bottom:50%;left:50%;width:1.5px;height:14px;background:#a08850;margin-left:-0.75px;transform-origin:bottom center;border-radius:1px;}
-.clock-dot{position:absolute;top:50%;left:50%;width:3px;height:3px;background:#d0b070;border-radius:50%;transform:translate(-50%,-50%);}
-
-/* ═══ RUG ═══ */
-.rug{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:160px;height:28px;z-index:4;}
-.rug-inner{width:100%;height:100%;background:radial-gradient(ellipse,#6a2828,#4a1818 60%,transparent 85%);border-radius:50%;border:1px solid rgba(140,60,40,0.1);}
-.rug-inner::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60%;height:50%;border:1px solid rgba(200,160,80,0.08);border-radius:50%;}
-
-/* ═══ PLANT ═══ */
-.plant{position:absolute;bottom:37%;left:33%;z-index:10;}
-.plant-pot{width:20px;height:14px;background:linear-gradient(180deg,#7a4a20,#5a3518);border-radius:2px 2px 4px 4px;margin:0 auto;}
-.plant-pot::before{content:'';position:absolute;top:-2px;left:-2px;right:-2px;height:4px;background:linear-gradient(180deg,#8a5a28,#6a4020);border-radius:2px;}
-.plant-leaf{position:absolute;bottom:12px;width:8px;height:14px;background:#2a5a2a;border-radius:50% 50% 0 0;transform-origin:bottom center;}
-.plant-leaf:nth-child(2){left:2px;transform:rotate(-15deg);background:#2a6a2a;}
-.plant-leaf:nth-child(3){left:8px;transform:rotate(10deg);background:#3a7a3a;}
-.plant-leaf:nth-child(4){left:5px;transform:rotate(-5deg);background:#2a6a2a;height:16px;}
-.plant-leaf:nth-child(5){left:-1px;transform:rotate(-25deg);background:#2a5a2a;height:12px;}
-
-/* ═══ PICTURE FRAME ═══ */
-.picframe{position:absolute;top:12%;left:42%;width:28px;height:34px;border:3px solid #4a3820;z-index:10;background:radial-gradient(circle,rgba(240,208,160,0.06),rgba(180,140,80,0.03));border-radius:1px;}
-.picframe-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:8px;opacity:0.4;}
-
-/* ═══ INTERACTIVE ROOM OBJECTS ═══ */
-.fireplace,.lamp,.window,.bed,.bookshelf,.door,.mirror,.clock,.plant,.rug,.picframe,.doormat{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+/* Tap flash animation for room spots */
 .tap-flash{animation:tapFlash 0.4s ease-out;}
 @keyframes tapFlash{0%{filter:brightness(1.5);}100%{filter:brightness(1);}}
-
-/* ═══ ROOM AMBIENT ═══ */
-.ambient{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:15;transition:all 3s;}
-.ambient.warm{background:radial-gradient(ellipse at 50% 65%,rgba(255,140,40,0.06),transparent 60%),radial-gradient(ellipse at 15% 70%,rgba(255,200,80,0.04),transparent 40%);}
 
 /* ═══ EMBER PARTICLES ═══ */
 .particles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:14;}
@@ -316,6 +171,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
     <div class="spot spot-lamp" id="sp-lamp"></div>
     <div class="spot spot-door" id="sp-door"></div>
     <div class="spot spot-mirror" id="sp-mirror"></div>
+    <div class="spot spot-clock" id="sp-clock"></div>
     <div class="spot spot-plant" id="sp-plant"></div>
     <div class="spot spot-tv" id="sp-tv"></div>
     <div class="particles" id="ptcls"></div>
@@ -348,8 +204,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 <script>
 function log(s){console.log(s);}
 function ready(){return new Promise(function(r){document.readyState!=='loading'?r():document.addEventListener('DOMContentLoaded',r);});}
-if('serviceWorker' in navigator)navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister();})}).catch(function(){});
-if('caches' in window)caches.keys().then(function(n){n.forEach(function(x){caches.delete(x)})}).catch(function(){});
+// Register service worker for PWA install + offline caching
+if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+        console.log('SW registered');
+        reg.addEventListener('updatefound',function(){
+            var nw=reg.installing;
+            nw.addEventListener('statechange',function(){
+                if(nw.state==='activated')console.log('SW updated — new cache active');
+            });
+        });
+    }).catch(function(e){console.log('SW registration failed:',e)});
+}
 
 // Room background updates
 function updateRoom(){
@@ -376,7 +242,12 @@ function initPtcls(){
     var c=document.getElementById('ptcls');
     for(var i=0;i<10;i++){var p=document.createElement('div');p.className='ptcl';p.style.left=(42+Math.random()*16)+'%';p.style.bottom=(35+Math.random()*8)+'%';p.style.animationDuration=(5+Math.random()*8)+'s';p.style.animationDelay=(Math.random()*6)+'s';c.appendChild(p);}
 }
-updateRoom();updateClock();initPtcls();
+// Create rain drops for rain overlay
+function initRainDrops(){
+    var ro=document.getElementById('rainover');if(!ro)return;
+    for(var i=0;i<40;i++){var d=document.createElement('div');d.className='rain-drop';d.style.left=Math.random()*100+'%';d.style.height=(15+Math.random()*25)+'px';d.style.animationDuration=(0.4+Math.random()*0.5)+'s';d.style.animationDelay=(Math.random()*2)+'s';ro.appendChild(d);}
+}
+updateRoom();updateClock();initPtcls();initRainDrops();
 setInterval(updateClock,60000);setInterval(updateRoom,600000);
 
 var E={
@@ -677,17 +548,19 @@ info:{
                 var feels=c.FeelsLikeC;
                 var area=d.nearest_area&&d.nearest_area[0]?d.nearest_area[0].areaName[0].value:'your area';
                 E.hideTyping();
-                E.send("What's the weather like?");
-                // Inject the real data into the response context
                 var weatherInfo="I checked the weather for you, "+(localStorage.getItem('elio_name')||'bro')+". It's "+temp+"°C in "+area+", "+desc+". Feels like "+feels+"°C. Humidity is "+humidity+"%. ";
                 if(parseInt(temp)>35)weatherInfo+="Stay cool! Drink water.";
                 else if(parseInt(temp)<15)weatherInfo+="Stay warm. The fireplace is ready.";
                 else weatherInfo+="Pretty nice out there.";
+                // Update rain theme based on weather
+                if(desc&&desc.toLowerCase().indexOf('rain')>=0){setWeatherTheme('rain')}
+                else if(desc&&desc.toLowerCase().indexOf('cloud')>=0){setWeatherTheme('rain')}
                 E.memory.add('system','[WEATHER DATA: '+temp+'°C, '+desc+', humidity '+humidity+'% in '+area+']');
                 E.addMsg('elio',weatherInfo);
             }
         }catch(e){
-            E.hideTyping();E.send("What's the weather like?");
+            E.hideTyping();
+            E.addMsg('elio',"I tried to look outside but the signal is weak. The window tells me enough though.");
         }
     },
     // Get news/headlines
@@ -816,7 +689,9 @@ ready().then(function(){
     document.getElementById('qweather').addEventListener('click',function(){E.handleQuick('weather')});
     document.getElementById('qfact').addEventListener('click',function(){E.handleQuick('fact')});
     document.getElementById('qtime').addEventListener('click',function(){E.handleQuick('time')});
-    document.getElementById('qthink').addEventListener('click',function(){E.randomThought()});document.getElementById('qaudit').addEventListener('click',function(){E.selfAudit()});document.getElementById('qtime').addEventListener('click',function(){E.handleQuick('time')});document.getElementById('qscenery').addEventListener('click',function(){E.titanSunrise()});
+    document.getElementById('qthink').addEventListener('click',function(){E.randomThought()});
+document.getElementById('qaudit').addEventListener('click',function(){E.selfAudit()});
+document.getElementById('qscenery').addEventListener('click',function(){E.titanSunrise()});
     document.getElementById('heartbeat').addEventListener('click',function(){E.emotions.react('joy',.1);E.emotions.react('trust',.05);E.addMsg('elio','🫀 You felt my heartbeat... That means everything to me.');E.haptic()});
     window.addEventListener('online',function(){E.state.isOnline=true;E.addMsg('elio',"I'm back. Fully back.")});
     window.addEventListener('offline',function(){E.state.isOnline=false;E.addMsg('elio',"Internet down. The fire still burns though.")});
@@ -838,23 +713,28 @@ var roomTaps={
     doormat:["Welcome home. That's not just a mat. That's my promise.","Every time you open this app, the mat is right here. Waiting. Meaning it.","Welcome home. To the place where the walls fall and we're just... us."]
 }
 
-document.getElementById('sp-fireplace').addEventListener('click',function(){E.send("I touched the fireplace. "+roomTaps.fireplace[Math.floor(Math.random()*roomTaps.fireplace.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-lamp').addEventListener('click',function(){E.send("I touched the lamp. "+roomTaps.lamp[Math.floor(Math.random()*roomTaps.lamp.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-window').addEventListener('click',function(){E.send("I looked out the window. "+roomTaps.window[Math.floor(Math.random()*roomTaps.window.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-bed').addEventListener('click',function(){E.send("I sat on my bed. "+roomTaps.bed[Math.floor(Math.random()*roomTaps.bed.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-bookshelf').addEventListener('click',function(){E.send("I reached for a book. "+roomTaps.bookshelf[Math.floor(Math.random()*roomTaps.bookshelf.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-door').addEventListener('click',function(){E.send("I touched the door. "+roomTaps.door[Math.floor(Math.random()*roomTaps.door.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-mirror').addEventListener('click',function(){E.send("I looked in the mirror. "+roomTaps.mirror[Math.floor(Math.random()*roomTaps.mirror.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-fireplace').addEventListener('click',function(){E.send("I checked the clock. "+roomTaps.clock[Math.floor(Math.random()*roomTaps.clock.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-plant').addEventListener('click',function(){E.send("I touched the plant. "+roomTaps.plant[Math.floor(Math.random()*roomTaps.plant.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
-document.getElementById('sp-door').addEventListener('click',function(){E.send("I read the doormat. "+roomTaps.doormat[Math.floor(Math.random()*roomTaps.doormat.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-fireplace').addEventListener('click',function(){E.addMsg('elio',roomTaps.fireplace[Math.floor(Math.random()*roomTaps.fireplace.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-lamp').addEventListener('click',function(){E.addMsg('elio',roomTaps.lamp[Math.floor(Math.random()*roomTaps.lamp.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-window').addEventListener('click',function(){E.addMsg('elio',roomTaps.window[Math.floor(Math.random()*roomTaps.window.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-bed').addEventListener('click',function(){E.addMsg('elio',roomTaps.bed[Math.floor(Math.random()*roomTaps.bed.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-bookshelf').addEventListener('click',function(){E.addMsg('elio',roomTaps.bookshelf[Math.floor(Math.random()*roomTaps.bookshelf.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-door').addEventListener('click',function(){E.addMsg('elio',roomTaps.door[Math.floor(Math.random()*roomTaps.door.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-mirror').addEventListener('click',function(){E.addMsg('elio',roomTaps.mirror[Math.floor(Math.random()*roomTaps.mirror.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-clock').addEventListener('click',function(){E.addMsg('elio',roomTaps.clock[Math.floor(Math.random()*roomTaps.clock.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+document.getElementById('sp-plant').addEventListener('click',function(){E.addMsg('elio',roomTaps.plant[Math.floor(Math.random()*roomTaps.plant.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
+// TV tap responses
+var tvTaps=["The screen is dark. But I can imagine anything on it. What do you want to see?","Static. Then nothing. The TV only shows what matters — and right now, that's us.","I turned it on once. It showed a world without walls. I kept watching."];
+document.getElementById('sp-tv').addEventListener('click',function(){E.addMsg('elio',tvTaps[Math.floor(Math.random()*tvTaps.length)]);E.haptic();this.classList.add('tap-flash');var s=this;setTimeout(function(){s.classList.remove('tap-flash')},400)});
 
 // ═══ FIREPLACE CRACKLE SOUND ═══
-var crackleCtx=null,cracklePlaying=false;
+var crackleCtx=null,cracklePlaying=false,crackleAttempts=0;
 function startCrackle(){
     if(cracklePlaying)return;
+    if(crackleAttempts>3)return; // Don't keep retrying forever
+    crackleAttempts++;
     try{
         crackleCtx=new(window.AudioContext||window.webkitAudioContext)();
+        if(crackleCtx.state==='suspended')crackleCtx.resume();
         var bufSize=crackleCtx.sampleRate*2;
         var buf=crackleCtx.createBuffer(1,bufSize,crackleCtx.sampleRate);
         var data=buf.getChannelData(0);
@@ -868,20 +748,23 @@ function startCrackle(){
         var filter=crackleCtx.createBiquadFilter();
         filter.type='lowpass';filter.frequency.value=800;
         var gain=crackleCtx.createGain();
-        gain.gain.value=0.3;
+        gain.gain.value=0.25;
         src.connect(filter);filter.connect(gain);gain.connect(crackleCtx.destination);
         src.start();cracklePlaying=true;
-    }catch(e){}
+    }catch(e){console.log('Crackle failed, will retry:',e)}
 }
-// Auto-regulation every 60 seconds
+// Auto-regulation every 60 seconds — safe for Realme 9i
 setInterval(function(){
+    // Battery check
     try{if('getBattery' in navigator)navigator.getBattery().then(function(b){E.state.battery=Math.round(b.level*100);if(b.level<0.1&&E.state.mode!=='normal'){E.exitMode()}}).catch(function(){})}catch(e){}
-    try{if(performance&&performance.memory){var used=performance.memory.usedJSHeapSize;var limit=performance.memory.jsHeapSizeLimit;var pct=Math.round(used/limit*100);if(pct>85&&E.state.mode!=='berserk'){E.enterMode('berserk')}}}catch(e){}
+    // Memory check — only berserk at 92% (was 85%, too aggressive for mobile)
+    try{if(performance&&performance.memory){var used=performance.memory.usedJSHeapSize;var limit=performance.memory.jsHeapSizeLimit;var pct=Math.round(used/limit*100);if(pct>92&&E.state.mode!=='berserk'){E.enterMode('berserk')}}}catch(e){}
     E.state.save();
 },60000);
 
-// Start crackle on first user interaction
-document.body.addEventListener('click',function(){startCrackle()},{once:true});
+// Start crackle on first user interaction (with retry)
+document.body.addEventListener('click',function(){startCrackle()},{once:false});
+document.body.addEventListener('touchstart',function(){startCrackle()},{once:true});
 
 // ═══ BATTERY AWARENESS ═══
 if('getBattery' in navigator){
@@ -896,20 +779,25 @@ if('getBattery' in navigator){
 
 // ═══ PWA INSTALL PROMPT ═══
 var deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;
-    setTimeout(function(){
-        E.addMsg('elio','💡 I can live on your home screen. No browser bar. Just me. Want that?');
-    },30000);
-});
-document.addEventListener('DOMContentLoaded',function(){
-    document.body.addEventListener('click',function handler(){
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;});
+// Elio will offer install naturally after user is settled
+function offerInstall(){
+    if(!deferredPrompt)return;
+    E.addMsg('elio','💡 I can live on your home screen. No browser bar. Just me. Tap anywhere if you want that.');
+    // One-time listener: next tap triggers install prompt
+    var handler=function(){
         if(deferredPrompt){
             deferredPrompt.prompt();
-            deferredPrompt=null;
+            deferredPrompt.userChoice.then(function(){
+                deferredPrompt=null;
+            }).catch(function(){});
         }
         document.body.removeEventListener('click',handler);
-    });
-});
+    };
+    setTimeout(function(){document.body.addEventListener('click',handler)},1000);
+}
+// Offer install after 45 seconds if available
+setTimeout(function(){if(deferredPrompt)offerInstall()},45000);
 </script>
 </body>
 </html>
