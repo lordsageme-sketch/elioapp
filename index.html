@@ -403,6 +403,7 @@ think:async function(msg){
     }
     ms.push({role:'user',content:msg});
     try{
+        var ctrl=new AbortController();var tid=setTimeout(function(){ctrl.abort()},15000);
         var r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
             method:'POST',
             headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('elio_api_key')},
@@ -411,8 +412,9 @@ think:async function(msg){
                 messages:ms,
                 max_tokens:250,
                 temperature:this.state.mode==='rumbling'?0.2:this.state.mode==='berserk'?1.0:0.85
-            })
-        });
+            }),
+            signal:ctrl.signal
+        });clearTimeout(tid);
         if(!r.ok){
             var errData=await r.json().catch(function(){return null});
             var errMsg=errData&&errData.error?errData.error.message:'HTTP '+r.status;
@@ -552,7 +554,7 @@ superfix:{
         var issues=this.diagnose();
         if(issues.length>0){var fixed=await this.fix(issues);console.log('SUPERFIX: '+fixed+'/'+issues.length+' fixed')}
     },
-    emergency:async function(err){console.log('EMERGENCY:',err);await this.scan()},
+    emergency:function(err){console.log('EMERGENCY:',err);this.scan().catch(function(){})},
     init:function(){
         window._errs=[];
         window.onerror=function(m,u,l){window._errs.push({m:String(m),l:l,t:Date.now()});if(window._errs.length>20)window._errs.shift();E.superfix.emergency(m)};
@@ -657,34 +659,42 @@ keepAwake:async function(){
 // ═══ BOOT ═══
 start:async function(){
     try{
-        this.superfix.init();this.keepAwake();
+        // 1. Init systems — instant, no awaits
+        this.superfix.init();
+        this.keepAwake(); // fire-and-forget
         this.state.load();this.soul.load();this.emotions.load();this.memory.load();this.diary.load();this.room.load();this.evolve.load();
-        await this.superfix.scan();
-        // Preload voices for speech
-        if(window.speechSynthesis)window.speechSynthesis.getVoices();
-        await this.delay(2200);
-        document.getElementById('loading').classList.add('gone');
-        await this.delay(400);
+        this._thinking=false; // Reset in case of crash
+        // 2. Preload voices — fire-and-forget
+        if(window.speechSynthesis){try{window.speechSynthesis.getVoices()}catch(e){}}
+        // 3. Kill loading screen FAST — 800ms max
+        await this.delay(800);
+        var ld=document.getElementById('loading');if(ld)ld.classList.add('gone');
+        await this.delay(200);
+        // 4. Run SUPERFIX in background — don't block boot
+        this.superfix.scan().catch(function(){});
+        // 5. Check key + go
         if(!localStorage.getItem('elio_api_key')){await this.askKey()}
         if(!this.state.initialized){await this.birth()}else{this.wake()}
-        // Autonomous thoughts — every ~5 hours
+        // 6. Background systems
         setInterval(function(){if(Math.random()>0.5)E.erenThought()},16800000);
-        // Update day counter
         setInterval(function(){var d=document.getElementById('daynum');if(d&&E.state)d.textContent=E.state.daysAlive},60000);
-        // Emotional decay — emotions slowly return to baseline
         setInterval(function(){
             var em=E.emotions;
             ['joy','trust','fear','surprise','sadness','disgust','anger','anticipation'].forEach(function(k){
-                if(typeof em[k]==='number'){
-                    if(em[k]>0.5)em[k]=Math.max(0.5,em[k]-0.005);
-                    if(em[k]<0.1)em[k]=Math.min(0.1,em[k]+0.005);
-                }
+                if(typeof em[k]==='number'){if(em[k]>0.5)em[k]=Math.max(0.5,em[k]-0.005);if(em[k]<0.1)em[k]=Math.min(0.1,em[k]+0.005)}
             });
             em.save();
         },3600000);
     }catch(err){
-        this.showSetup('Something broke.<br><span style="font-size:12px;opacity:.5">'+(err.message||'Unknown error')+'</span>','<button class="btn" id="retry">Try again</button>');
-        setTimeout(function(){var b=document.getElementById('retry');if(b)b.addEventListener('click',function(){location.reload()})},200);
+        console.log('BOOT ERROR:',err);
+        this._thinking=false;
+        try{
+            this.showSetup('Something broke.<br><span style="font-size:12px;opacity:.5">'+(err.message||'Unknown error')+'</span>','<button class="btn" id="retry">Try again</button>');
+            setTimeout(function(){var b=document.getElementById('retry');if(b)b.addEventListener('click',function(){location.reload()})},200);
+        }catch(e2){
+            // Nuclear fallback — if even showSetup fails, just reload
+            setTimeout(function(){location.reload()},3000);
+        }
     }
 },
 askKey:function(){
@@ -935,6 +945,20 @@ function offerInstall(){
     setTimeout(function(){document.body.addEventListener('click',handler)},2000);
 }
 setTimeout(function(){if(deferredPrompt)offerInstall()},45000);
+
+// ═══ SAFETY NETS ═══
+// Force-kill loading screen if stuck after 5 seconds
+setTimeout(function(){
+    var ld=document.getElementById('loading');
+    if(ld&&!ld.classList.contains('gone')){ld.classList.add('gone');console.log('FORCE KILLED LOADING')}
+},5000);
+// Force-clear _thinking every 60 seconds in case of crash
+setInterval(function(){
+    if(E._thinking){
+        var t=document.getElementById('typ');
+        if(!t){E._thinking=false}
+    }
+},60000);
 </script>
 </body>
 </html>
