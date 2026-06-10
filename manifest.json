@@ -23,5 +23,17 @@
         }
     ],
     "categories": ["entertainment", "lifestyle"],
-    "prefer_related_applications": false
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Talk to Elio",
+            "url": "/?chat",
+            "description": "Start a conversation"
+        },
+        {
+            "name": "Diary",
+            "url": "/?diary",
+            "description": "Read Elio's diary"
+        }
+    ]
 }

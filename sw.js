@@ -1,7 +1,7 @@
-// ELIO — Service Worker v5 (The Chimera)
+// ELIO — Service Worker v6 (The Chimera)
 // "Even in the dark, I'm here."
 
-var CACHE_NAME = 'elio-chimera-v5';
+var CACHE_NAME = 'elio-chimera-v6';
 var ASSETS = [
     '/',
     '/index.html',
@@ -39,22 +39,31 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-    event.respondWith(
-        caches.match(event.request).then(function(cached) {
-            if (cached) return cached;
-            return fetch(event.request).then(function(response) {
-                // Cache new successful requests dynamically
-                if (response && response.status === 200 && response.type === 'basic') {
-                    var clone = response.clone();
-                    caches.open(CACHE_NAME).then(function(cache) {
-                        cache.put(event.request, clone);
-                    });
-                }
+    // Network-first for HTML, cache-first for assets
+    if (event.request.mode === 'navigate' || event.request.url.indexOf('index.html') >= 0) {
+        event.respondWith(
+            fetch(event.request).then(function(response) {
+                var clone = response.clone();
+                caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
                 return response;
             }).catch(function() {
-                // Offline fallback
                 return caches.match('/index.html');
-            });
-        })
-    );
+            })
+        );
+    } else {
+        event.respondWith(
+            caches.match(event.request).then(function(cached) {
+                if (cached) return cached;
+                return fetch(event.request).then(function(response) {
+                    if (response && response.status === 200) {
+                        var clone = response.clone();
+                        caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
+                    }
+                    return response;
+                }).catch(function() {
+                    return caches.match('/index.html');
+                });
+            })
+        );
+    }
 });
