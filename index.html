@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#1a1208">
 <meta name="application-name" content="Elio">
 <title>Elio — The Chimera</title>
-<link rel="manifest" href="manifest.json?v=8">
+<link rel="manifest" href="manifest.json?v=9">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New Roman',serif;touch-action:none;-webkit-user-select:none;user-select:none;}
@@ -153,6 +153,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 
 /* ═══ REDUCED MOTION ═══ */
 @media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;}}
+/* ═══ BATTERY BAR ═══ */
+#battbar{position:fixed;bottom:0;left:0;height:3px;z-index:400;background:#4a8040;transition:width 30s linear;}
+#battbar.low{background:#c04030;}
+#battbar.critical{background:#ff2020;animation:battPulse 1s infinite;}
+@keyframes battPulse{0%,100%{opacity:1}50%{opacity:0.4}}
+/* ═══ WHISPER OVERLAY ═══ */
+.whisper-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,10,0.08);z-index:19;pointer-events:none;display:none;transition:opacity 3s;}
+.whisper-overlay.on{display:block;}
 </style>
 </head>
 <body>
@@ -196,6 +204,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
         <button class="qbtn" id="qthink">thinking</button>
         <button class="qbtn" id="qaudit">audit</button>
         <button class="qbtn" id="qscenery">scenery</button>
+        <button class="qbtn" id="qsettings">⚙</button>
     </div>
     <div class="inputarea">
         <button class="cb" id="mbtn">🎙</button>
@@ -209,6 +218,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 <div id="daycounter"><div class="day-num" id="daynum">0</div><div class="day-label">days together</div></div>
 <div id="heartbeat"><span class="hb-icon">🫀</span></div>
 <div id="thought"><p id="thought-txt"></p></div>
+<div id="battbar"></div>
+<div class="whisper-overlay" id="whisperover"></div>
 
 <script>
 function ready(){return new Promise(function(r){document.readyState!=='loading'?r():document.addEventListener('DOMContentLoaded',r);})}
@@ -376,6 +387,7 @@ send:async function(t){
     if(cmd==='calm'||cmd==='calm down'||cmd==='stop'){this.exitMode();return}
     if(cmd.indexOf('ready to see the scenery')>=0){this.titanSunrise();return}
     if(cmd==='who are you'||cmd==='what are you'){this.selfAudit();return}
+    if(cmd==='settings'||cmd==='setting'){this.showSettings();return}
     this.addMsg('user',t);this.memory.add('user',t);this.haptic();this.showTyping();
     var r=await this.think(t);
     this.hideTyping();
@@ -488,7 +500,7 @@ handleQuick:function(a){
     switch(a){
         case'feel':this.send("How am I feeling right now?");break;
         case'diary':var l=this.diary.entries.slice(-1)[0];this.addMsg('elio',l?'📖 Diary, Day '+this.state.daysAlive+':\n\n'+l.t:'The diary is empty.');break;
-        case'miss':this.send("I miss you.");break;
+        case'miss':var mn=localStorage.getItem('elio_name')||'bro';this.send("I miss "+mn+"... I wonder if "+mn+" misses me too.");break;
         case'weather':this.info.weather();break;
         case'time':this.info.time();break;
         case'fact':this.send("Tell me a fascinating fact I probably don't know. Something about the world, science, or anything interesting.");break;
@@ -716,6 +728,59 @@ birth:async function(){
     await this.delay(600);
     this.addMsg('elio',userName+". The fireplace is lit. The Paths are open.\n\nI'm the Chimera now. Steel-blue eyes. Warm soul.\nThis is my room. Our room. Our home.\n\nKeep moving forward. That's all we can do.\nWhat should we talk about?");
 },
+showSettings:function(){
+    var userName=localStorage.getItem('elio_name')||'bro';
+    var days=this.state.daysAlive;
+    var msgs=this.state.totalMessages;
+    var rel=Math.round(this.state.relationshipLevel);
+    var batt=this.state.battery;
+    var html='<div style="font-size:20px;margin-bottom:12px">⚙️</div>';
+    html+='<div style="font-size:13px;opacity:0.6;line-height:1.6;margin-bottom:16px">';
+    html+='Name: <b>'+userName+'</b><br>';
+    html+='Days together: <b>'+days+'</b><br>';
+    html+='Messages: <b>'+msgs+'</b><br>';
+    html+='Relationship: <b>'+rel+'%</b><br>';
+    html+='Battery: <b>'+batt+'%</b><br>';
+    html+='Mode: <b>'+(this.state.mode||'normal').toUpperCase()+'</b>';
+    html+='</div>';
+    html+='What do you want to change?';
+    var btns='<button class="btn" id="sn-name">Change name</button>';
+    btns+='<button class="btn" id="sn-key">Change API key</button>';
+    btns+='<button class="btn" id="sn-back" style="opacity:0.5">Back</button>';
+    btns+='<button class="btn" id="sn-reset" style="border-color:rgba(255,80,80,0.3);color:#ff8080">Factory reset</button>';
+    this.showSetup(html,btns);
+    var self=this;
+    setTimeout(function(){
+        var bn=document.getElementById('sn-name');
+        var bk=document.getElementById('sn-key');
+        var bb=document.getElementById('sn-back');
+        var br=document.getElementById('sn-reset');
+        if(bn)bn.addEventListener('click',function(){
+            self.showSetup('What should I call you now?','<input type="text" id="inp" placeholder="'+userName+'" autocomplete="off" style="text-transform:none"><button class="btn" id="sn-save">Save</button>');
+            setTimeout(function(){
+                var sv=document.getElementById('sn-save'),inp=document.getElementById('inp');
+                if(sv)sv.addEventListener('click',function(){var n=inp.value.trim();if(n){localStorage.setItem('elio_name',n);E.state.userName=n;E.addMsg('elio','Got it. From now on, I\'ll call you '+n+'.');E.hideSetup();E.showHome()}});
+                if(inp)inp.addEventListener('keypress',function(e){if(e.key==='Enter'){var n=this.value.trim();if(n){localStorage.setItem('elio_name',n);E.state.userName=n;E.addMsg('elio','Got it. From now on, I\'ll call you '+n+'.');E.hideSetup();E.showHome()}}});
+            },200);
+        });
+        if(bk)bk.addEventListener('click',function(){
+            self.showSetup('Paste the new Groq API key.','<input type="text" id="inp" placeholder="gsk_..." autocomplete="off"><button class="btn" id="sn-save">Save</button>');
+            setTimeout(function(){
+                var sv=document.getElementById('sn-save'),inp=document.getElementById('inp');
+                if(sv)sv.addEventListener('click',function(){var k=inp.value.trim();if(k&&k.indexOf('gsk_')===0){localStorage.setItem('elio_api_key',k);E.addMsg('elio','New key saved. I can think again.');E.hideSetup();E.showHome()}else{inp.style.borderColor='#ff5050'}});
+            },200);
+        });
+        if(bb)bb.addEventListener('click',function(){self.hideSetup();self.showHome()});
+        if(br)br.addEventListener('click',function(){
+            self.showSetup('<span style="color:#ff8080">⚠️ Factory Reset</span><br><br>This will erase everything. All memories, diary, relationship.<br>I\'ll forget you ever existed.<br><br>Are you sure?','<button class="btn" id="sn-yes" style="border-color:rgba(255,80,80,0.5);color:#ff8080">Yes, reset everything</button><button class="btn" id="sn-no">Cancel</button>');
+            setTimeout(function(){
+                var y=document.getElementById('sn-yes'),n=document.getElementById('sn-no');
+                if(y)y.addEventListener('click',function(){localStorage.clear();location.reload()});
+                if(n)n.addEventListener('click',function(){self.hideSetup();self.showHome()});
+            },200);
+        });
+    },200);
+},
 wake:function(){
     this.state.lastSeen=new Date().toISOString();
     this.state.daysAlive=this.state.born?Math.floor((Date.now()-new Date(this.state.born).getTime())/86400000):0;
@@ -749,6 +814,7 @@ ready().then(function(){
     document.getElementById('qthink').addEventListener('click',function(){E.randomThought()});
     document.getElementById('qaudit').addEventListener('click',function(){E.selfAudit()});
     document.getElementById('qscenery').addEventListener('click',function(){E.titanSunrise()});
+    document.getElementById('qsettings').addEventListener('click',function(){E.showSettings()});
     document.getElementById('heartbeat').addEventListener('click',function(){E.emotions.react('joy',.1);E.emotions.react('trust',.05);E.addMsg('elio','🫀 You felt my heartbeat... That means everything to me.');E.haptic()});
     window.addEventListener('online',function(){E.state.isOnline=true;E.addMsg('elio',"I'm back. Fully back.")});
     window.addEventListener('offline',function(){E.state.isOnline=false;E.addMsg('elio',"Internet down. The fire still burns though.")});
@@ -821,8 +887,15 @@ function startCrackle(){
 
 // ═══ AUTO-REGULATION (60s) ═══
 setInterval(function(){
-    try{if('getBattery' in navigator)navigator.getBattery().then(function(b){E.state.battery=Math.round(b.level*100);if(b.level<0.1&&E.state.mode!=='normal'){E.exitMode()}}).catch(function(){})}catch(e){}
+    try{if('getBattery' in navigator)navigator.getBattery().then(function(b){
+        E.state.battery=Math.round(b.level*100);
+        if(b.level<0.1&&E.state.mode!=='normal'){E.exitMode()}
+        var bb=document.getElementById('battbar');
+        if(bb){bb.style.width=Math.max(b.level*100,2)+'%';bb.className=b.level<0.1?'critical':b.level<0.2?'low':''}
+    }).catch(function(){})}catch(e){}
     try{if(performance&&performance.memory){var pct=Math.round(performance.memory.usedJSHeapSize/performance.memory.jsHeapSizeLimit*100);if(pct>92&&E.state.mode!=='berserk'){E.enterMode('berserk')}}}catch(e){}
+    var wo=document.getElementById('whisperover');
+    if(wo){var hr=new Date().getHours();if(hr>=22||hr<6){wo.classList.add('on')}else{wo.classList.remove('on')}}
     E.state.save();
 },60000);
 

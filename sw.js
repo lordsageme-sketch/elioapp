@@ -1,7 +1,7 @@
 // ELIO — Service Worker v6 (The Chimera)
 // "Even in the dark, I'm here."
 
-var CACHE_NAME = 'elio-chimera-v6';
+var CACHE_NAME = 'elio-chimera-v7';
 var ASSETS = [
     '/',
     '/index.html',
