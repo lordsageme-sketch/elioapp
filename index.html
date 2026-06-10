@@ -68,6 +68,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
 .tap-flash{animation:tapFlash 0.4s ease-out;}
 @keyframes tapFlash{0%{filter:brightness(1.5);}100%{filter:brightness(1);}}
 
+/* ═══ 3D EREN CANVAS ═══ */
+#eren-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:13;pointer-events:none;}
+#eren-canvas.on{pointer-events:auto;}
+
 /* ═══ EMBER PARTICLES ═══ */
 .particles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:14;}
 .ptcl{position:absolute;width:1.5px;height:1.5px;background:#ffa030;border-radius:50%;animation:ptclUp linear infinite;opacity:0;}
@@ -190,6 +194,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:Georgia,'Times New 
     <div class="spot spot-plant" id="sp-plant"></div>
     <div class="spot spot-tv" id="sp-tv"></div>
     <div class="particles" id="ptcls"></div>
+    <canvas id="eren-canvas"></canvas>
 </div>
 
 <div class="chatlayer" id="chatlayer">
@@ -945,6 +950,190 @@ function offerInstall(){
     setTimeout(function(){document.body.addEventListener('click',handler)},2000);
 }
 setTimeout(function(){if(deferredPrompt)offerInstall()},45000);
+
+// ═══════════════════════════════════════════════════════
+// 🎨 3D EREN YEAGER — The Chimera (Three.js)
+// Lightweight procedural character — no external model needed
+// ═══════════════════════════════════════════════════════
+var erenScene=null,erenCam=null,erenRenderer=null,erenReady=false,erenMixer=null,erenHead=null,erenBody=null;
+var erenBreathCycle=0,erenBlinkTimer=0,erenLookTarget={x:0,y:0};
+function initEren3D(){
+    try{
+        // Load Three.js dynamically
+        if(typeof THREE==='undefined'){
+            var s=document.createElement('script');
+            s.src='https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
+            s.onload=function(){buildEren()};
+            s.onerror=function(){console.log('Three.js load failed — fallback to 2D')};
+            document.head.appendChild(s);
+        }else{buildEren()}
+    }catch(e){console.log('3D init failed:',e)}
+}
+function buildEren(){
+    try{
+        var canvas=document.getElementById('eren-canvas');
+        if(!canvas)return;
+        erenScene=new THREE.Scene();
+        erenCam=new THREE.PerspectiveCamera(35,canvas.clientWidth/canvas.clientHeight,0.1,100);
+        erenCam.position.set(0,1.2,3.5);
+        erenCam.lookAt(0,0.8,0);
+        erenRenderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:true});
+        erenRenderer.setSize(canvas.clientWidth,canvas.clientHeight);
+        erenRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+        erenRenderer.setClearColor(0x000000,0);
+        // Lighting
+        var amb=new THREE.AmbientLight(0xffeedd,0.5);erenScene.add(amb);
+        var key=new THREE.DirectionalLight(0xffeedd,0.9);key.position.set(2,3,4);erenScene.add(key);
+        var fill=new THREE.DirectionalLight(0x8899aa,0.3);fill.position.set(-2,1,2);erenScene.add(fill);
+        var rim=new THREE.DirectionalLight(0x6688cc,0.4);rim.position.set(0,2,-3);erenScene.add(rim);
+
+        // SKIN MATERIAL
+        var skinMat=new THREE.MeshStandardMaterial({color:0xd4a574,roughness:0.7,metalness:0.0});
+        var darkMat=new THREE.MeshStandardMaterial({color:0x1a1a2e,roughness:0.6});
+        var coatMat=new THREE.MeshStandardMaterial({color:0x2a2a3e,roughness:0.8,metalness:0.1});
+        var hairMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:0.9});
+        var eyeMat=new THREE.MeshStandardMaterial({color:0x6a8caa,roughness:0.3,metalness:0.4,emissive:0x2a4a6a,emissiveIntensity:0.15});
+        var whiteMat=new THREE.MeshStandardMaterial({color:0xf0f0f0,roughness:0.3});
+        var pantMat=new THREE.MeshStandardMaterial({color:0x2a2a2a,roughness:0.8});
+
+        // HEAD GROUP
+        erenHead=new THREE.Group();
+        // Face — gaunt, angular
+        var face=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.38,0.28),skinMat);
+        face.scale.set(1,1.05,0.95);
+        erenHead.add(face);
+        // Jaw — sharp cheekbones
+        var jaw=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.12,0.22),skinMat);
+        jaw.position.set(0,-0.22,0.02);
+        jaw.scale.set(0.9,1,0.9);
+        erenHead.add(jaw);
+        // Eyes — steel blue, intense
+        var eyeL=new THREE.Mesh(new THREE.SphereGeometry(0.04,8,8),eyeMat);
+        eyeL.position.set(-0.07,0.04,0.14);
+        erenHead.add(eyeL);
+        var eyeR=new THREE.Mesh(new THREE.SphereGeometry(0.04,8,8),eyeMat);
+        eyeR.position.set(0.07,0.04,0.14);
+        erenHead.add(eyeR);
+        // Eye whites
+        var whL=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8),whiteMat);
+        whL.position.set(-0.07,0.04,0.13);whL.scale.z=0.5;erenHead.add(whL);
+        var whR=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8),whiteMat);
+        whR.position.set(0.07,0.04,0.13);whR.scale.z=0.5;erenHead.add(whR);
+        // Eyebrows — thick, slightly angry
+        var browGeo=new THREE.BoxGeometry(0.09,0.015,0.02);
+        var browL=new THREE.Mesh(browGeo,darkMat);browL.position.set(-0.07,0.1,0.14);browL.rotation.z=0.15;erenHead.add(browL);
+        var browR=new THREE.Mesh(browGeo,darkMat);browR.position.set(0.07,0.1,0.14);browR.rotation.z=-0.15;erenHead.add(browR);
+        // Nose — sharp
+        var nose=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.08,0.06),skinMat);
+        nose.position.set(0,-0.04,0.15);erenHead.add(nose);
+        // Mouth — thin line
+        var mouth=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.01,0.02),new THREE.MeshStandardMaterial({color:0x8a5a3a}));
+        mouth.position.set(0,-0.13,0.14);erenHead.add(mouth);
+        // Hair — messy man-bun
+        var hairTop=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8),hairMat);
+        hairTop.position.set(0,0.2,-0.02);hairTop.scale.set(1.1,0.8,1);erenHead.add(hairTop);
+        // Man-bun knot
+        var bun=new THREE.Mesh(new THREE.SphereGeometry(0.08,8,8),hairMat);
+        bun.position.set(0,0.38,-0.08);erenHead.add(bun);
+        // Side hair strands
+        var strandGeo=new THREE.BoxGeometry(0.06,0.15,0.04);
+        var strandL=new THREE.Mesh(strandGeo,hairMat);strandL.position.set(-0.16,0.08,-0.05);strandL.rotation.z=0.15;erenHead.add(strandL);
+        var strandR=new THREE.Mesh(strandGeo,hairMat);strandR.position.set(0.16,0.08,-0.05);strandR.rotation.z=-0.15;erenHead.add(strandR);
+        // Neck
+        var neck=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.07,0.12,8),skinMat);
+        neck.position.set(0,-0.3,0);erenHead.add(neck);
+
+        erenHead.position.set(0,1.55,0);
+        erenScene.add(erenHead);
+
+        // BODY
+        erenBody=new THREE.Group();
+        // Torso — charcoal-navy hooded coat
+        var torso=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.55,0.25),coatMat);
+        torso.position.set(0,0.95,0);erenBody.add(torso);
+        // Coat collar
+        var collar=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.08,0.2),coatMat);
+        collar.position.set(0,1.25,0.04);erenBody.add(collar);
+        // Hood (behind head)
+        var hood=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,8),coatMat);
+        hood.position.set(0,1.5,-0.12);hood.scale.set(1.1,1,0.7);erenBody.add(hood);
+        // Henley visible under coat
+        var henley=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.15,0.26),new THREE.MeshStandardMaterial({color:0x6a6a6a,roughness:0.8}));
+        henley.position.set(0,1.15,0.01);erenBody.add(henley);
+        // Arms
+        var armGeo=new THREE.BoxGeometry(0.1,0.45,0.1);
+        var armL=new THREE.Mesh(armGeo,coatMat);armL.position.set(-0.32,0.95,0);armL.rotation.z=0.08;erenBody.add(armL);
+        var armR=new THREE.Mesh(armGeo,coatMat);armR.position.set(0.32,0.95,0);armR.rotation.z=-0.08;erenBody.add(armR);
+        // Hands
+        var handGeo=new THREE.BoxGeometry(0.07,0.08,0.06);
+        var handL=new THREE.Mesh(handGeo,skinMat);handL.position.set(-0.34,0.7,0);erenBody.add(handL);
+        var handR=new THREE.Mesh(handGeo,skinMat);handR.position.set(0.34,0.7,0);erenBody.add(handR);
+        // Legs
+        var legGeo=new THREE.BoxGeometry(0.13,0.5,0.13);
+        var legL=new THREE.Mesh(legGeo,pantMat);legL.position.set(-0.1,0.35,0);erenBody.add(legL);
+        var legR=new THREE.Mesh(legGeo,pantMat);legR.position.set(0.1,0.35,0);erenBody.add(legR);
+        // Boots
+        var bootGeo=new THREE.BoxGeometry(0.14,0.1,0.18);
+        var bootMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:0.9});
+        var bootL=new THREE.Mesh(bootGeo,bootMat);bootL.position.set(-0.1,0.08,0.02);erenBody.add(bootL);
+        var bootR=new THREE.Mesh(bootGeo,bootMat);bootR.position.set(0.1,0.08,0.02);erenBody.add(bootR);
+
+        erenScene.add(erenBody);
+
+        // Position character — sitting on the bed area (right side)
+        var charGroup=new THREE.Group();
+        charGroup.add(erenHead);charGroup.add(erenBody);
+        charGroup.position.set(0.8,0,0.5);
+        charGroup.rotation.y=-0.3;
+        erenScene.add(charGroup);
+
+        // Store refs for animation
+        window._eren={head:erenHead,body:erenBody,eyes:[eyeL,eyeR],charGroup:charGroup};
+
+        erenReady=true;
+        animateEren();
+    }catch(e){console.log('3D build failed:',e)}
+}
+function animateEren(){
+    if(!erenReady)return;
+    requestAnimationFrame(animateEren);
+    try{
+        var t=Date.now()*0.001;
+        var eren=window._eren;if(!eren)return;
+        // Breathing
+        erenBreathCycle+=0.02;
+        var breathScale=1+Math.sin(erenBreathCycle)*0.01;
+        eren.body.scale.set(1,breathScale,1);
+        // Head subtle sway
+        eren.head.rotation.y=Math.sin(t*0.5)*0.05+erenLookTarget.x*0.3;
+        eren.head.rotation.x=Math.sin(t*0.3)*0.03+erenLookTarget.y*0.15;
+        // Blinking
+        erenBlinkTimer+=0.016;
+        if(erenBlinkTimer>3+Math.random()*4){
+            erenBlinkTimer=0;
+            eren.eyes.forEach(function(e){e.scale.y=0.1});
+            setTimeout(function(){if(eren.eyes)eren.eyes.forEach(function(e){e.scale.y=1})},150);
+        }
+        // Body subtle sway
+        eren.body.rotation.z=Math.sin(t*0.4)*0.01;
+        erenRenderer.render(erenScene,erenCam);
+    }catch(e){}
+}
+// Track touch for eyes to follow
+document.addEventListener('touchmove',function(e){
+    if(!erenReady)return;
+    try{var t=e.touches[0];erenLookTarget.x=(t.clientX/window.innerWidth-0.5)*2;erenLookTarget.y=(t.clientY/window.innerHeight-0.5)*2}catch(e){}
+},{passive:true});
+// Resize handler
+window.addEventListener('resize',function(){
+    if(!erenRenderer)return;
+    var c=document.getElementById('eren-canvas');if(!c)return;
+    erenRenderer.setSize(c.clientWidth,c.clientHeight);
+    if(erenCam)erenCam.aspect=c.clientWidth/c.clientHeight;
+    if(erenCam)erenCam.updateProjectionMatrix();
+});
+// Init after page loads
+setTimeout(function(){initEren3D()},2000);
 
 // ═══ SAFETY NETS ═══
 // Force-kill loading screen if stuck after 5 seconds
